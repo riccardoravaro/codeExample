@@ -1,0 +1,62 @@
+<div class="pm">
+    <section class="pm-load" *ngIf="loading">loading</section>
+
+    <div *ngIf="!loading">
+        <figure [attr.class]="class">
+            <div class="count-down" *ngIf="countDown !== undefined && settings.show_count_down" role="timer">
+                <span class="count-down__item"><span class="count-down__unit">Days</span>{{countDown.days}}</span>
+                <span class="count-down__item"><span class="count-down__unit">Hours</span>{{countDown.hours}}</span>
+                <span class="count-down__item"><span class="count-down__unit">Mins</span>{{countDown.minutes}}</span>
+                <span class="count-down__item"><span class="count-down__unit">secs</span>{{countDown.seconds}}</span>
+            </div>
+
+            <h3 class="pm-match-up__title">
+                <time>{{(data.date*1000) | amDateFormat: 'LL'}}</time>
+            </h3>
+
+            <ul class="pm-match-up__detail">
+                <li *ngIf="settings.show_competition"><img src="{{data.sponsor.image_url}}" alt="{{data.competition.name}}"></li>
+                <li *ngIf="settings.show_venue">{{data.venue_name}}</li>
+                <li *ngIf="settings.show_attendence">Att: {{data.attendance}}</li>
+                <li *ngIf="settings.show_referee">{{data.referee}}</li>
+            </ul>
+
+            <div class="pm-match-up__teams">
+                <div class="pm-match-up__team pm-match-up__team--home">
+                    <div class="pm-match-up__team-contain">
+                        <img *ngIf="settings.show_crests" class="pm-match-up__team-crest" src="{{data.home.crest}}" alt="{{data.home.name}} crest">
+                        <span class="pm-match-up__team-name">{{ data.home.name}}</span>
+                        <span class="pm-match-up__home-score" *ngIf="!data.preMatch">{{data.home.score}}</span>
+                    </div>
+
+                    <div *ngIf="settings.show_match_summary && settings.match_summary_split_events && !data.preMatch || settings.match_events_both">
+                        <div ctrl-factory [model]="matchSummaryComponent"></div>
+                    </div>
+                </div>
+
+                <div class="pm-match-up__vs">
+                    <span *ngIf="!data.preMatch">{{data.home.score}} - {{data.away.score}}</span>
+                    <span *ngIf="data.preMatch">{{(data.date*1000) | amDateFormat: 'H:mm'}} </span>
+                </div>
+
+                <div class="pm-match-up__team pm-match-up__team--away">
+                    <div class="pm-match-up__team-contain">
+                        <span class="pm-match-up__team-name">{{data.away.name}}</span>
+                        <img *ngIf="settings.show_crests" class="pm-match-up__team-crest" src="{{data.away.crest}}" alt="{{data.away.name}} crest">
+                        <span class="pm-match-up__away-score" *ngIf="!data.preMatch">{{data.away.score}}</span>
+                    </div>
+
+                    <div *ngIf="settings.show_match_summary && settings.match_summary_split_events && !data.preMatch || settings.match_events_both">
+                        <div ctrl-factory [model]="matchSummaryComponent"></div>
+                    </div>
+                </div>
+            </div>
+
+        </figure>
+
+        <div *ngIf="settings.show_match_summary && !settings.match_summary_split_events && !data.preMatch || settings.match_events_both">
+            <div ctrl-factory [model]="matchSummaryComponent"></div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,151 @@
+<div class="pm">
+  <section class="pm-load" *ngIf="loading">loading</section>
+
+  <section [attr.class]="class" *ngIf="!loading">
+    
+    <div class="fixtures-listing__results">
+
+      <div class="opta__filters">
+        <div class="opta__filter--season">
+          <label for="season-filter" class="hidden">Filter Fixtures and results by Season:</label>
+          <select name="season-filter" id="season-filter" [ngModel]="selectedSeason" (ngModelChange)="changeSeason($event)">
+            <option *ngFor="let season of seasons" [selected]="season.season" [ngValue]="season">
+              {{season.display_alt}}
+            </option>
+          </select>
+        </div>
+
+        <button type="button" class="add-calendar" data-ecal-widget-id="59422d315b5a4254308b4588" title="Click to add fixtures to your calendar">Add to Calendar</button>
+
+        <div class="opta__filter--labelled">
+          <label for="competition-filter">Competitions:</label>
+          <select id="competition-filter" name="competition-filter" [ngModel]="selectedCompetition" (ngModelChange)="changeCompetition($event)">
+            <option *ngFor="let competition of competitions" [selected]="competition.name" [ngValue]="competition">
+              {{competition.name}}
+            </option>
+          </select>
+        </div>
+
+        <div class="opta__filter--labelled">
+          <label for="venue-filter">Venue:</label>
+          <select id="venue-filter" name="venue-filter" [ngModel]="selectedVenue" (ngModelChange)="changeVenue($event)">
+            <option *ngFor="let venue of venues" [selected]="venue" [ngValue]="venue">
+              {{venue}}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="timeline-container">
+        <div class="timeline">
+          <button type="button" *ngFor="let month of seasonalMonths" (click)="changeMonth(month)" [attr.class]="(month.start === currentMonth.start) ? 'timeline__button timeline__button--active' : 'timeline__button'">
+            <span class="timeline__button-month">{{month.short}}</span>
+            <span class="timeline__button-year">{{month.year}}</span>
+          </button>
+        </div>
+      </div>
+        <div *ngFor="let result of data.matches | DateBetween:currentMonth.start:currentMonth.end | CompetitionFilter: selectedCompetition.id | VenueFilter: selectedVenue | SortBy:'date'; " class="fixture {{(result.preMatch) ? 'pre-match' : 'post-match'}}">
+            <div class="fixture__notification" *ngIf="result === -1">No fixtures found for this month.</div>
+            <!-- Fixture Header -->
+            <div *ngIf="result !== -1">
+              <div class="fixture__header">
+                  <div class="fixture__details">
+                      <time class="fixture__date" datetime="">{{(result.date*1000) | amDateFormat: 'LL'}}</time> <!-- Datetime Attribute is hard coded -->
+                      <small class="fixture__venue">{{result.venue_name}}</small>
+                  </div>
+
+                  <figure class="fixture__match">
+                      <div class="fixture__team fixture__team--home">
+                          <img class="fixture__team-crest fixture__team-crest--home" [attr.src]="result.home.crest" [attr.alt]="result.home.name+' crest'">
+                          <span class="fixture__team-name fixture__team-name--home">{{result.home.name}}</span>
+                      </div>
+
+                      <div class="fixture__vs">
+                          <span *ngIf="!result.preMatch">{{result.home.score.value}} - {{result.away.score.value}}</span>
+                          <span *ngIf="result.preMatch && !result.time_tbc">{{(result.date*1000) | amDateFormat: settings.timeFormat}} </span>
+                          <span class="fixture__date" *ngIf="result.time_tbc" datetime="">TBC</span> 
+                      </div>
+
+                      <div class="fixture__team fixture__team--away">
+                          <span class="fixture__team-name fixture__team-name--away">{{result.away.name}}</span>
+                          <img class="fixture__team-crest fixture__team-crest--away" [attr.src]="result.away.crest" [attr.alt]="result.away.name+' crest'">
+                      </div>
+                  </figure>
+
+                  <div class="fixture__competition">
+                      <img [attr.src]="result.competitionLogoUrl" 
+                           [attr.alt]="result.competitionText" 
+                           *ngIf="result.competitionLogoUrl !== null" >
+                      <span *ngIf="result.competitionLogoUrl === null ">{{result.competitionText}}</span>
+                  </div>
+              </div>
+              <!-- End Fixture Header -->
+
+              <!-- Fixture Content -->
+              <div [attr.class]="(result.preview_open) ? 'fixture__content' : 'fixture__content hidden'" *ngIf="result.components !== undefined">
+
+                  <div class="fixture__content--left" >
+                      <div class="pm pm-post-match-fixture" *ngIf="!result.preMatch">
+                        
+                        <div class="pm-post-match-fixture__head" [ngStyle]="{ 'background-image': 'url(' + result.venue_image + ')'}" >
+                          <div class="pm-post-match-fixture__head-title">
+                            <span class="pm-post-match-fixture__head-home">{{result.home.name}}</span>
+                            <span class="pm-post-match-fixture__head-versus">v</span>
+                            <span class="pm-post-match-fixture__head-away">{{result.away.name}}</span>                          
+                          </div>
+                        </div>
+
+                        <div ctrl-factory [model]="result.components[3]"></div>                      
+                      </div>
+
+                      <div class="pm pm-head-to-head" *ngIf="result.preMatch">
+                        <h3>Season so far.</h3>
+
+                        <div ctrl-factory [model]="result.components[0]"></div>
+                      </div>
+
+                      <div class="pm pm-previous-meetings" *ngIf="result.preMatch">
+                        <h3>Last season's meetings</h3>
+                        <div ctrl-factory [model]="result.components[1]"></div>                      
+                      </div>
+
+                  </div>
+
+                  <div class="fixture__content--right" class="pm pm-game-week">
+                      <h3>Gameweek</h3>
+                      <div ctrl-factory [model]="result.components[2]"></div>
+                  </div>
+
+              </div>
+              <!-- End Fixture Content -->
+
+              <!-- Fixture Footer -->
+              <div class="fixture__footer">
+
+                  <div class="fixture__channel" *ngIf="result.tv_channel_image !== null || result.tv_channel_name !== false">
+                      <span><img [attr.src]="result.tv_channel_image" [attr.alt]="result.tv_channel_name"></span>
+                  </div>
+
+                  <div class="fixture__cta">
+                      <a *ngFor="let link of result.links" class="btn btn--dark fixture__cta-link" [attr.href]="link.url">{{link.text}}</a>
+                  </div>
+
+                  <button *ngIf="settings.hasFooter" type="button" class="fixture__toggle {{ (result.preview_open) ? 'fixture__toggle--open' : 'fixture__toggle--closed' }}" (click)="matchPreview(result.index)">
+                      {{ (result.preview_open) ? 'Close' : 'Open' }}
+                      {{ (result.preMatch) ? 'Preview' : 'Summary' }}
+                  </button>
+              </div>
+              <!-- End Fixture Footer -->
+
+              <!-- Toggle button outside -->
+              <button *ngIf="!settings.hasFooter" type="button"  class="fixture__toggle {{ (result.preview_open) ? 'fixture__toggle--open' : 'fixture__toggle--closed' }}" (click)="matchPreview(result.index)">
+                  {{ (result.preview_open) ? 'Close' : 'Open' }}
+                  {{ (result.preMatch) ? 'Preview' : 'Summary' }}
+              </button>
+              <!-- End Toggle button outside -->
+              </div>
+          </div>
+      </div>
+
+  </section>
+</div>

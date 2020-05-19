@@ -1,0 +1,40 @@
+
+
+<div class="pm">
+  <section class="pm-load" *ngIf="loading">loading</section>
+
+
+  <div class="previous-meetings">
+    <h3 class="previous-meetings__heading">Previous Meetings</h3>
+
+      <div *ngIf="!loading">
+        
+      <div *ngFor="let game of games" class="previous-meeting">
+          <div class="previous-meeting__heading">
+              <time class="previous-meeting__date">{{game.date | amDateFormat: 'LL'}}</time>
+              <span class="previous-meeting__competition">{{game.competition}}</span>
+          </div>
+
+          <div class="previous-meeting__content">
+            <figure class="fixture__match">
+              <div class="fixture__team fixture__team--home">
+                <img class="fixture__team-crest fixture__team-crest--home" [attr.src]="game.home.crestUrl" [attr.alt]="game.home.name + 'Crest'">
+                <span class="fixture__team-name fixture__team-name--home">{{game.home.name}}</span>
+              </div>
+
+              <div class="fixture__vs">
+                <span>{{game.home.score}} - {{game.away.score}}</span>
+              </div>
+
+              <div class="fixture__team fixture__team--away">
+                <span class="fixture__team-name fixture__team-name--away">{{game.away.name}}</span>
+                <img class="fixture__team-crest fixture__team-crest--away" [attr.src]="game.away.crestUrl" [attr.alt]="game.away.name + 'Crest'">
+              </div>
+            </figure>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+</div>

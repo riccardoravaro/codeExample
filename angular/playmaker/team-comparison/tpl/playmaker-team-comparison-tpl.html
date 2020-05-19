@@ -1,0 +1,58 @@
+<div class="pm">
+    <section class="pm-load" *ngIf="loading">loading</section>
+
+    <div *ngIf="!loading" class="team-comparison">
+        <figure class="fixture__match">
+            <div class="fixture__team fixture__team--home">
+                <img class="fixture__team-crest fixture__team-crest--home" [attr.src]="teams.home.crestUrl" [attr.alt]="teams.home.name+ 'crest'">
+                <span class="fixture__team-name fixture__team-name--home">{{teams.home.name}}</span>
+            </div>
+
+            <div class="fixture__vs">
+                <span>Head to Head</span>
+            </div>
+
+            <div class="fixture__team fixture__team--away">
+                <span class="fixture__team-name fixture__team-name--away">{{teams.away.name}}</span>
+                <img class="fixture__team-crest fixture__team-crest--away" [attr.src]="teams.away.crestUrl" [attr.alt]="teams.away.name+ 'crest'">
+            </div>
+        </figure>
+
+        <table>
+            <caption class="hidden">Team comparisons to show recent form for {{teams.home.name}} and {{teams.away.name}} this season.</caption>
+            <tbody>
+            <tr>
+                <td>{{teams.home.games_played}}</td>
+                <td>Played</td>
+                <td>{{teams.away.games_played}}</td>
+            </tr>
+            <tr>
+                <td>{{teams.home.games_won}}</td>
+                <td>Won</td>
+                <td>{{teams.away.games_won}}</td>
+            </tr>
+            <tr>
+                <td>{{teams.home.games_drawn}}</td>
+                <td>Drawn</td>
+                <td>{{teams.away.games_drawn}}</td>
+            </tr>
+            <tr>
+                <td>{{teams.home.games_lost}}</td>
+                <td>Lost</td>
+                <td>{{teams.away.games_lost}}</td>
+            </tr>
+            <tr>
+                <td>{{getPercentage(teams.home.games_played, teams.home.games_won)}}%</td>
+                <td>Games Lost</td>
+                <td>{{getPercentage(teams.away.games_played, teams.away.games_won)}}%</td>
+            </tr>
+            <tr>
+                <td>{{teams.home.position}}</td>
+                <td>Position</td>
+                <td>{{teams.away.position}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>

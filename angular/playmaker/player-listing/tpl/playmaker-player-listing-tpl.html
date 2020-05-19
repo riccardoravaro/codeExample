@@ -1,0 +1,315 @@
+<section class="pm squad-listing" *ngIf="!loading && !error && !settings.basic" >
+	
+<!-- Full listings view -->
+	<h1 class="squad-listing__heading" *ngIf="settings.title === false">
+		{{selectedTeam}}
+	</h1>
+
+	<h1 class="squad-listing__heading" *ngIf="settings.title !== false">
+		{{settings.title}}
+	</h1>
+
+	<!-- Start: Team Tabs -->
+	<div class="squad-listing__tabs">
+        <ul role="tablist" class="tabbable team-tabs">
+            <li *ngFor="let team of teams; let i = index" [attr.aria-selected]="(i === 0) ? true : false" 
+            	class="tabbable__tab {{(selectedTeam === team) ? 'tabbable__tab--current' : ''}}" role="presentation" tabindex="0">
+                <a (click)="changeTeam(team, $event); tabAccessability($event);"  tabindex="0" role="tab" class="tabbable__tab-link">
+                    {{team | CamelcaseToSpaces | StrCapitalize}}
+                </a>
+            </li>
+        </ul>
+    </div>
+    <!-- End: Team Tabs -->
+
+    <div class="squad-listing__toolbar">
+	    <!-- Start: Markers -->
+	    <div class="squad-listing__markers" *ngIf="settings.showMarkers">
+	    	<ul class="squad-listing__markers-list">
+	    		<li class="squad-listing__markers-item squad-listing__markers-list-item--captain">Captain</li>
+	    		<li class="squad-listing__markers-item squad-listing__markers-list-item--vice-captain">Vice Captain</li>
+	    		<li class="squad-listing__markers-item squad-listing__markers-list-item--loan-in">Loan in</li>
+	    		<li class="squad-listing__markers-item squad-listing__markers-list-item--loan-out">Loan out</li>		
+	    	</ul>
+	    </div>
+	    <!-- End: Markers -->
+
+		<!-- Start: Filters -->
+		<section class="squad-listing__filters">
+			<h2 class="hidden" aria-label="Squad Listing Filters">Squad Filters</h2>
+
+			<div class="opta__filters" *ngIf="settings.filters">
+				<div class="opta__filter--labelled" aria-label="Player Position Filter">
+					<label for="position-filter">Position:</label>
+					<select name="position-filter" id="position-filter" [(ngModel)]="selectedPosition" (ngModelChange)="filter();"  role="listbox">
+						<option *ngFor="let position of positions" [ngValue]="position" role="option">
+							{{ position.long | StrReplaceAll:'_':' ' | StrCapitalize }}
+						</option>
+					</select>
+				</div>
+
+				<div class="opta__filter--labelled" aria-label="Player Stats Filter">
+					<label for="standings-venue-filter">Sort by:</label>
+					<select id="standings-venue-filter" name="standings-venue-filter" [(ngModel)]="selectedSortBy" role="listbox">
+						<option *ngFor="let sort of filters[selectedPosition.short]" [ngValue]="sort" role="option">
+							{{ sort | StrReplaceAll:'_':' ' | StrCapitalize }}
+						</option>
+					</select>
+				</div>
+			</div>
+		</section>
+		<!-- End: Filters -->
+	</div>
+
+    <!-- Start: Player positions view -->
+	<div class="squad-listing__inner" *ngIf="selectedSortBy === 'position'" aria-live="polite" aria-atomic="true">
+		<div class="squad-listing__section" *ngFor="let position of positions">
+			<section class="squad-listing__section-contain" *ngIf="position.short !== 'all'">
+				<h3 class="squad-listing__sub-heading"><span>{{position.long | StrReplaceAll:'_':' ' | StrCapitalize }}s</span></h3>
+
+				<div class="squad-listing__section-inner">
+					<article class="player-card" 
+							 *ngFor="let player of data[selectedTeam] | Filter:position.short:'position.short' | SortBy:selectedSortBy; let i = index"
+							 [attr.data-captain]="player.captain"
+							 [attr.data-vice-captain]="player.vice_captain"
+							 [attr.data-loaned_in]="player.loaned_in"
+							 [attr.data-loaned_out]="player.loaned_out"
+							 >
+						<section class="player-card__details">
+							<h4 class="player-card__name" *ngIf="settings.showName">{{player.name}}</h4>
+
+							<p class="player-card__position player-card__position--full"  *ngIf="settings.showPosition === 'full' && !settings.inlineDetails">
+								<span class="player-card__stat-heading">Position:</span>
+								{{ player.position.long }}
+							</p>
+
+							<p class="player-card__position player-card__position--abbr" *ngIf="settings.showPosition === 'abbr' && !settings.inlineDetails">
+								<span class="player-card__stat-heading">Position:</span>
+								{{ player.position.short }}
+							</p>
+
+							<p class="player-card__number" *ngIf="!settings.inlineDetails">
+								<span class="player-card__stat-heading">Number:</span>
+								{{player.number}}
+							</p>
+
+							<p class="player-card__inline-details" *ngIf="settings.inlineDetails">
+								#{{player.number}}, {{(settings.showPosition === 'abbr') ? player.position.short : player.position.long }}
+							</p>
+
+							<span class="player-card__stat" *ngIf="player.stats[selectedSortBy]">
+								{{selectedSortBy}}: {{player.stats[selectedSortBy]}}
+							</span>
+
+							<img class="player-card__image" *ngIf="settings.showImage" [attr.src]="player.image" [attr.alt]="player.name+' photo'">
+							
+							<div class="player-card__properties">
+								<span class="player-card__status player-card__status--captain" *ngIf="player.captain">
+									Captain
+								</span>
+
+								<span class="player-card__status player-card__status--vice-captain" *ngIf="player.vice_captain">
+									Vice Captain
+								</span>
+
+
+								<span class="player-card__status player-card__status--loan player-card__status--loan-in" *ngIf="player.loaned_in">
+									Loaned in
+								</span>
+
+								<span class="player-card__status player-card__status--loan player-card__status--loan-out" *ngIf="player.loaned_out">
+									Loaned out
+								</span>
+								<a href="{{player.link}}" class="player-card__link" *ngIf="settings.showLink" title="View {{player.name}}'s Profile">
+								  {{ (settings.linkAsName) ? player.name : 'Profile' }}
+								</a>
+							</div>
+						</section>
+					</article>
+				</div>
+			</section>
+		</div>
+	</div>
+	<!-- End: Player Positions view -->
+
+	<!-- Start: All players view -->
+ 	<section class="squad-listing__inner" *ngIf="selectedSortBy != 'position'" aria-live="polite" aria-atomic="true">
+		<div class="squad-listing__section">
+			<section class="squad-listing__section-contain" >
+				<h3 class="squad-listing__sub-heading" *ngIf="settings.showFilterTitle">
+					{{selectedSortBy | StrReplaceAll:'_':' ' | StrCapitalize}}
+				</h3>
+
+				<div class="squad-listing__section-inner">
+					<article class="player-card player-card--with-stat" *ngFor="let player of data[selectedTeam]| Filter:selectedPosition.short:'position.short' | SortBy:selectedSortBy; let i = index" 
+							 [attr.data-animation-delay]="i"
+							 [attr.data-captain]="player.captain"
+							 [attr.data-vice-captain]="player.vice_captain"
+							 [attr.data-loaned_in]="player.loaned_in"
+							 [attr.data-loaned_out]="player.loaned_out">
+						<section class="player-card__details">
+							<h4 class="player-card__name" *ngIf="settings.showName">{{player.name}}</h4>
+
+							<p class="player-card__number" *ngIf="settings.alwaysShowNumber && !settings.inlineDetails">
+								<span class="player-card__stat-heading">Number:</span>
+								{{player.number}}
+							</p>
+
+							<p class="player-card__inline-details" *ngIf="settings.inlineDetails && !settings.alwaysShowNumber">
+								#{{player.number}}, {{(settings.showPosition === 'abbr') ? player.position.short : player.position.long }}
+							</p>
+
+							<div class="player-card__stat" *ngIf="player.stats[selectedSortBy]">
+								<div>
+									 <span>{{player.stats[selectedSortBy]}}</span>
+									 <span *ngIf="settings.showFilterTypeOnCards">
+									 	{{selectedSortBy | StrReplaceAll:'_':' ' | StrCapitalize : ''}}
+									 </span>
+								 </div>
+							</div>
+
+							<div class="player-card__stat" *ngIf="!player.stats[selectedSortBy]">
+								<div>
+									<span>0</span> 
+									<span *ngIf="settings.showFilterTypeOnCards">
+									 	{{selectedSortBy | StrReplaceAll:'_':' ' | StrCapitalize : ''}}
+									</span>
+								 </div>
+							</div>
+
+							<img class="player-card__image" *ngIf="settings.showImage" [attr.src]="player.image" [attr.alt]="player.name+' photo'">
+
+							<div class="player-card__properties">
+								<span class="player-card__status player-card__status--captain" *ngIf="player.captain">
+									Captain
+								</span>
+								<span class="player-card__status player-card__status--vice-captain" *ngIf="player.vice_captain">
+									Vice Captain
+								</span>
+								<span class="player-card__status player-card__status--loan" *ngIf="player.loaned_in">
+									Loaned in
+								</span>
+
+								<span class="player-card__status player-card__status--loan" *ngIf="player.loaned_out">
+									Loaned out
+								</span>
+								<a [attr.href]="player.link" class="player-card__link" *ngIf="settings.showLink" title="View {{player.name}}'s Profile">
+								  {{ (settings.linkAsName) ? player.name : 'Profile' }}
+								</a>
+							</div>
+							
+						</section>
+					</article>
+				</div>
+			</section>
+		</div>
+	</section>
+	<!-- End: All players view -->
+</section>
+
+
+
+<div class="squad-listing__basic squad-listing__unordered" *ngIf="!loading && !error && settings.basic && !settings.ordered">
+
+	<ul class="squad-listing__basic-list squad-listing__basic-list">
+		<li *ngFor="let player of data[selectedTeam]; let i = index" [attr.data-player-number]="player.number" class="squad-listing__basic-list-item" 
+			[attr.data-animation-delay]="i"
+			[attr.data-captain]="player.captain"
+			[attr.data-vice-captain]="player.vice_captain"
+			[attr.data-loaned_in]="player.loaned_in"
+			[attr.data-loaned_out]="player.loaned_out">
+			<span class="squad-listing__basic-list-item-status--position">{{player.position.short}}</span>
+			<a [attr.href]="player.link" [attr.title]="player.name"> {{player.name}} </a>
+			<span class="squad-listing__basic-list-item-status--loaned-out" *ngIf="settings.showLoans && player.loaned_in">(loaned in)</span>
+			<span class="squad-listing__basic-list-item-status--loaned-in" *ngIf="settings.showLoans && player.loaned_out">(loaned out)</span>
+			<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.captain">(captain)</span>
+			<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.vice_captain">(vice captain)</span>
+
+		</li>
+	</ul>
+
+</div>
+
+
+
+
+<div class="squad-listing__basic" *ngIf="!loading && !error && settings.basic && settings.ordered">
+
+	<div class="squad-listing__basic-block squad-listing__basic-block--goalkeepers">
+		<h3>Goalkeepers</h3>
+		<ul class="squad-listing__basic-list squad-listing__basic-list">
+			<li *ngFor="let player of data[selectedTeam]| Filter:'gk':'position.short'; let i = index" [attr.data-player-number]="player.number" class="squad-listing__basic-list-item" 
+				[attr.data-animation-delay]="i"
+				[attr.data-captain]="player.captain"
+				[attr.data-vice-captain]="player.vice_captain"
+				[attr.data-loaned_in]="player.loaned_in"
+				[attr.data-loaned_out]="player.loaned_out">
+				<a [attr.href]="player.link" [attr.title]="player.name"> {{player.name}} </a>
+				<span class="squad-listing__basic-list-item-status--loaned-out" *ngIf="settings.showLoans && player.loaned_in">(loaned in)</span>
+				<span class="squad-listing__basic-list-item-status--loaned-in" *ngIf="settings.showLoans && player.loaned_out">(loaned out)</span>
+				<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.vice_captain">(vice captain)</span>
+				<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.captain">(captain)</span>
+			</li>
+		</ul>
+	</div>
+	
+	<div class="squad-listing__basic-block squad-listing__basic-block--defenders">
+		<h3>Defenders</h3>
+		<ul class="squad-listing__basic-list">
+			<li *ngFor="let player of data[selectedTeam]| Filter:'df':'position.short'; let i = index" [attr.data-player-number]="player.number" class="squad-listing__basic-list-item" 
+				[attr.data-animation-delay]="i"
+				[attr.data-captain]="player.captain"
+				[attr.data-loaned_in]="player.loaned_in"
+				[attr.data-loaned_out]="player.loaned_out">
+				<a [attr.href]="player.link" [attr.title]="player.name"> {{player.name}} </a>
+				<span class="squad-listing__basic-list-item-status--loaned-out" *ngIf="settings.showLoans && player.loaned_in">(loaned in)</span>
+				<span class="squad-listing__basic-list-item-status--loaned-in" *ngIf="settings.showLoans && player.loaned_out">(loaned out)</span>
+				<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.vice_captain">(vice captain)</span>
+				<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.captain">(captain)</span>
+				
+			</li>
+		</ul>
+	</div>
+
+	<div class="squad-listing__basic-block squad-listing__basic-block--midfielders">
+		<h3>Midfielders</h3>
+		<ul class="squad-listing__basic-list">
+			<li *ngFor="let player of data[selectedTeam]| Filter:'mf':'position.short'; let i = index" [attr.data-player-number]="player.number" class="squad-listing__basic-list-item" 
+				[attr.data-animation-delay]="i"
+				[attr.data-captain]="player.captain"
+				[attr.data-loaned_in]="player.loaned_in"
+				[attr.data-loaned_out]="player.loaned_out">
+				<a [attr.href]="player.link" [attr.title]="player.name"> {{player.name}} </a>
+				<span class="squad-listing__basic-list-item-status--loaned-out" *ngIf="settings.showLoans && player.loaned_in">(loaned in)</span>
+				<span class="squad-listing__basic-list-item-status--loaned-in" *ngIf="settings.showLoans && player.loaned_out">(loaned out)</span>
+				<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.vice_captain">(vice captain)</span>
+				<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.captain">(captain)</span>
+			</li>
+		</ul>
+	</div>
+
+
+	<div class="squad-listing__basic-block squad-listing__basic-block--forwards">
+		<h3>Forwards</h3>
+		<ul class="squad-listing__basic-list">
+			<li *ngFor="let player of data[selectedTeam]| Filter:'fw':'position.short'; let i = index" [attr.data-player-number]="player.number" class="squad-listing__basic-list-item" 
+				[attr.data-animation-delay]="i"
+				[attr.data-captain]="player.captain"
+				[attr.data-loaned_in]="player.loaned_in"
+				[attr.data-loaned_out]="player.loaned_out">
+				<a [attr.href]="player.link" [attr.title]="player.name"> {{player.name}}</a>
+				<span class="squad-listing__basic-list-item-status--loaned-out" *ngIf="settings.showLoans && player.loaned_in">(loaned in)</span>
+				<span class="squad-listing__basic-list-item-status--loaned-in" *ngIf="settings.showLoans && player.loaned_out">(loaned out)</span>
+				<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.vice_captain">(vice captain)</span>
+				<span class="squad-listing__basic-list-item-status--captain" *ngIf="settings.showCaptins && player.captain">(captain)</span>
+			</li>
+		</ul>
+	</div>
+</div>
+
+
+
+
+<section [hidden]="!error" class="pm-error">
+	<h3>{{error}}</h3>
+</section>
